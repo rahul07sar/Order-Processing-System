@@ -1,3 +1,5 @@
+"""Application settings loaded from environment variables."""
+
 from functools import lru_cache
 from typing import Optional
 
@@ -6,6 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Strongly typed runtime configuration for the backend service."""
+
     app_name: str = "Order Processing API"
     api_prefix: str = "/api"
     environment: str = "development"
@@ -16,8 +20,14 @@ class Settings(BaseSettings):
     postgres_db: str = "order_processing"
     database_url: Optional[str] = None
     auth_token_ttl_hours: int = 24
-    password_min_length: int = 12
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    auth_cookie_name: str = "ops_session"
+    secure_cookies: bool = False
+    password_min_length: int = 8
+    cors_origins: str = ""
+    registration_rate_limit_attempts: int = 5
+    registration_rate_limit_window_seconds: int = 300
+    login_rate_limit_attempts: int = 10
+    login_rate_limit_window_seconds: int = 300
     bootstrap_admin_email: Optional[str] = None
     bootstrap_admin_password: Optional[str] = None
 
@@ -47,4 +57,6 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Reuse one settings object per process to avoid repeated env parsing."""
+
     return Settings()

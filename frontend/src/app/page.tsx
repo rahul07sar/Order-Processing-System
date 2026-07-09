@@ -1,3 +1,6 @@
+/**
+ * Lightweight landing dashboard for the original App Router shell.
+ */
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const statusCards = [
@@ -34,8 +37,9 @@ export default function Home() {
           display: "grid",
           gap: 24
         }}
-      >
-        <div
+        >
+          {/* Header section */}
+          <div
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -60,9 +64,10 @@ export default function Home() {
             </h1>
           </div>
           <ThemeToggle />
-        </div>
+          </div>
 
-        <div
+          {/* Status overview cards */}
+          <div
           style={{
             padding: 28,
             borderRadius: 28,

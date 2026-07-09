@@ -1,5 +1,7 @@
+# Local development stack for PostgreSQL, FastAPI, and Next.js services.
 services:
   db:
+    # PostgreSQL stores application data and is exposed locally for inspection.
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -17,6 +19,7 @@ services:
       retries: 5
 
   backend:
+    # The backend service serves APIs, handles auth, and runs the scheduler.
     build:
       context: ./backend
     restart: unless-stopped
@@ -24,8 +27,14 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       ENVIRONMENT: ${ENVIRONMENT}
       AUTH_TOKEN_TTL_HOURS: ${AUTH_TOKEN_TTL_HOURS}
+      AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME}
+      SECURE_COOKIES: ${SECURE_COOKIES}
       PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      REGISTRATION_RATE_LIMIT_ATTEMPTS: ${REGISTRATION_RATE_LIMIT_ATTEMPTS}
+      REGISTRATION_RATE_LIMIT_WINDOW_SECONDS: ${REGISTRATION_RATE_LIMIT_WINDOW_SECONDS}
+      LOGIN_RATE_LIMIT_ATTEMPTS: ${LOGIN_RATE_LIMIT_ATTEMPTS}
+      LOGIN_RATE_LIMIT_WINDOW_SECONDS: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL}
       BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD}
       POSTGRES_HOST: ${POSTGRES_HOST}
@@ -43,11 +52,12 @@ services:
         condition: service_healthy
 
   frontend:
+    # The frontend service serves the browser UI during development.
     build:
       context: ./frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      API_PROXY_TARGET: ${API_PROXY_TARGET}
     command: npm run dev -- --hostname 0.0.0.0 --port 3000
     volumes:
       - ./frontend:/app
@@ -59,4 +69,5 @@ services:
       - backend
 
 volumes:
+  # Named volume keeps PostgreSQL data across normal restarts.
   postgres_data:

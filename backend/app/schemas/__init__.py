@@ -1,1 +1,1 @@
-"""Pydantic schema package."""
+"""Pydantic schema definitions for request and response payloads."""

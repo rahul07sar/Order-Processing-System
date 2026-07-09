@@ -1,3 +1,5 @@
+"""Background scheduler that advances pending orders automatically."""
+
 import logging
 from datetime import datetime, timezone
 
@@ -14,8 +16,12 @@ scheduler = AsyncIOScheduler()
 
 
 async def promote_pending_orders() -> None:
+    """Move pending orders into processing on the configured interval."""
+
     db = SessionLocal()
     try:
+        # The scheduler only performs the simple automated transition required
+        # by the assignment and leaves later stages to explicit handlers.
         pending_orders = db.scalars(
             select(Order).where(Order.status == OrderStatus.PENDING)
         ).all()
@@ -35,6 +41,8 @@ async def promote_pending_orders() -> None:
 
 
 def start_scheduler() -> None:
+    """Start the order-status scheduler exactly once per process."""
+
     if scheduler.running:
         return
     scheduler.add_job(
@@ -47,5 +55,7 @@ def start_scheduler() -> None:
 
 
 def stop_scheduler() -> None:
+    """Stop the order-status scheduler during application shutdown."""
+
     if scheduler.running:
         scheduler.shutdown(wait=False)

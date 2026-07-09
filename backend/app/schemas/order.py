@@ -1,3 +1,5 @@
+"""Order request and response schemas."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -11,6 +13,8 @@ from app.db.models import OrderStatus
 
 
 class OrderItemCreate(BaseModel):
+    """One item submitted while creating an order."""
+
     product_name: str = Field(min_length=1, max_length=255)
     sku: str = Field(min_length=1, max_length=100)
     quantity: int = Field(gt=0)
@@ -26,6 +30,8 @@ class OrderItemCreate(BaseModel):
 
 
 class OrderCreate(BaseModel):
+    """Payload used when a customer places a new order."""
+
     items: list[OrderItemCreate] = Field(min_length=1)
     notes: Optional[str] = Field(default=None, max_length=2000)
 
@@ -39,6 +45,8 @@ class OrderCreate(BaseModel):
 
 
 class OrderItemResponse(BaseModel):
+    """Serialized order item returned to API clients."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -50,6 +58,8 @@ class OrderItemResponse(BaseModel):
 
 
 class OrderResponse(BaseModel):
+    """Serialized order aggregate returned to API clients."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -65,8 +75,12 @@ class OrderResponse(BaseModel):
 
 
 class OrderListResponse(BaseModel):
+    """Collection wrapper for order list endpoints."""
+
     items: list[OrderResponse]
 
 
 class OrderStatusUpdate(BaseModel):
+    """Payload used by admins to move an order to its next state."""
+
     status: OrderStatus

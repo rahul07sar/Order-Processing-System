@@ -1,3 +1,5 @@
+"""Database bootstrap helpers that run after migrations are applied."""
+
 import logging
 
 from sqlalchemy import inspect, select
@@ -12,14 +14,19 @@ logger = logging.getLogger(__name__)
 
 
 def seed_bootstrap_admin() -> None:
+    """Create the configured admin account when the schema is ready."""
+
     if not settings.bootstrap_admin_email or not settings.bootstrap_admin_password:
         return
 
+    # Startup should never recreate schema implicitly, so we only seed once the
+    # users table already exists through migrations.
     inspector = inspect(engine)
     if not inspector.has_table("users"):
         logger.info("Skipping bootstrap admin creation until migrations are applied.")
         return
 
+    # Keep the seed idempotent so repeated service starts remain safe.
     db = SessionLocal()
     try:
         admin_email = settings.bootstrap_admin_email.strip().lower()

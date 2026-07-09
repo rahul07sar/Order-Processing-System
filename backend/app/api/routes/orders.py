@@ -1,3 +1,5 @@
+"""Order routes for customer and admin operations."""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -32,6 +34,8 @@ def create_order(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> OrderResponse:
+    """Create a new order for the authenticated user."""
+
     order = create_order_for_user(db=db, user=current_user, payload=payload)
     return OrderResponse.model_validate(order)
 
@@ -42,6 +46,8 @@ def list_orders(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> OrderListResponse:
+    """List orders, optionally filtered by status."""
+
     orders = list_orders_for_user(db=db, user=current_user, status_filter=status_filter)
     return OrderListResponse(items=[OrderResponse.model_validate(order) for order in orders])
 
@@ -52,6 +58,8 @@ def get_order(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> OrderResponse:
+    """Fetch a single order visible to the current user."""
+
     order = get_order_for_user(db=db, order_id=order_id, user=current_user)
     return OrderResponse.model_validate(order)
 
@@ -62,6 +70,8 @@ def cancel_order(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> OrderResponse:
+    """Cancel a pending order owned by the current user."""
+
     order = cancel_order_for_user(db=db, order_id=order_id, user=current_user)
     return OrderResponse.model_validate(order)
 
@@ -73,5 +83,7 @@ def patch_order_status(
     _: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ) -> OrderResponse:
+    """Allow an admin to advance an order through its workflow."""
+
     order = update_order_status(db=db, order_id=order_id, next_status=payload.status)
     return OrderResponse.model_validate(order)

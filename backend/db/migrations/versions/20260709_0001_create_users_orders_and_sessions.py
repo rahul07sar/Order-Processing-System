@@ -31,6 +31,8 @@ order_status_enum = postgresql.ENUM(
 
 
 def upgrade() -> None:
+    """Create the initial domain schema for users and orders."""
+
     bind = op.get_bind()
     user_role_enum.create(bind, checkfirst=True)
     order_status_enum.create(bind, checkfirst=True)
@@ -102,6 +104,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Remove the initial domain schema in reverse dependency order."""
+
     op.drop_index("ix_order_items_sku", table_name="order_items")
     op.drop_table("order_items")
     op.drop_table("orders")

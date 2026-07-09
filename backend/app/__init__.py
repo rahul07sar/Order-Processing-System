@@ -1,1 +1,1 @@
-"""Backend application package."""
+"""Backend package for the order processing API."""

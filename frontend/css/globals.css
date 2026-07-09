@@ -1,0 +1,62 @@
+/* Global design tokens and baseline resets shared by Pages Router screens. */
+:root {
+  color-scheme: light;
+  --page-background: #efe8de;
+  --page-foreground: #1f1713;
+  --panel-background: rgba(255, 255, 255, 0.82);
+  --panel-border: rgba(31, 23, 19, 0.09);
+  --surface-muted: rgba(116, 95, 82, 0.1);
+  --text-muted: #675a52;
+  --accent: #b85422;
+  --accent-strong: #8f3f18;
+  --success: #126c44;
+  --error: #a22d20;
+  --shadow: 0 24px 80px rgba(88, 52, 24, 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --page-background: #120f0d;
+  --page-foreground: #f5ede6;
+  --panel-background: rgba(30, 24, 21, 0.88);
+  --panel-border: rgba(255, 245, 237, 0.08);
+  --surface-muted: rgba(255, 245, 237, 0.06);
+  --text-muted: #c7bbb1;
+  --accent: #ff9a61;
+  --accent-strong: #ffd3b7;
+  --success: #51d39a;
+  --error: #ff8578;
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+}
+
+/* Reset and layout primitives */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#__next {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(184, 84, 34, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
+    var(--page-background);
+  color: var(--page-foreground);
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+/* Shared typography defaults for interactive elements */
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
