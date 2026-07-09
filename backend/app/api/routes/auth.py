@@ -59,7 +59,6 @@ def register(
     )
     set_auth_cookie(response, raw_token)
     return SessionResponse(
-        access_token=raw_token,
         expires_at=session_token.expires_at,
         user=UserResponse.model_validate(user),
     )
@@ -83,7 +82,6 @@ def login(
     )
     set_auth_cookie(response, raw_token)
     return SessionResponse(
-        access_token=raw_token,
         expires_at=session_token.expires_at,
         user=UserResponse.model_validate(user),
     )
@@ -100,15 +98,14 @@ def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
 def logout(
     request: Request,
     response: Response,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    """Revoke the current session and clear the browser cookie."""
+    """Revoke the supplied session when present and always clear the browser cookie."""
 
     authorization_header = request.headers.get("authorization", "")
     raw_token = authorization_header.removeprefix("Bearer ").strip() or request.cookies.get(
         settings.auth_cookie_name, ""
     )
     if raw_token:
-        revoke_session(db=db, raw_token=raw_token, user_id=current_user.id)
+        revoke_session(db=db, raw_token=raw_token)
     clear_auth_cookie(response)

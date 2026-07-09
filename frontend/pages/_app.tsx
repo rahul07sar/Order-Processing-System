@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import { ThemeProvider } from "next-themes";
 
 import "../css/globals.css";
+import "../css/login.css";
 import "../css/registration.css";
 
 export default function OrderProcessingApp({ Component, pageProps }: AppProps) {

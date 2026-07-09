@@ -22,6 +22,7 @@ type RegistrationSuccess = {
 };
 
 type RegistrationFieldErrors = {
+  password?: string;
   confirmPassword?: string;
 };
 
@@ -34,8 +35,45 @@ const INITIAL_FORM_STATE: RegistrationFormState = {
 
 const API_BASE_PATH = "/api";
 
-function extractErrorMessage(payload: unknown): string {
-  // The backend can return either a flat detail string or a structured validation error list.
+function getPasswordValidationMessage(password: string): string | null {
+  if (password.length < 8) {
+    return "Password must be at least 8 characters long.";
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return "Password must include at least one lowercase letter.";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "Password must include at least one uppercase letter.";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "Password must include at least one special character.";
+  }
+
+  return null;
+}
+
+async function parseResponsePayload(response: Response): Promise<unknown> {
+  const responseText = await response.text();
+
+  if (!responseText.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(responseText) as unknown;
+  } catch {
+    return { detail: responseText };
+  }
+}
+
+function extractErrorMessage(response: Response, payload: unknown): string {
+  if (response.status >= 500) {
+    return "The registration service is temporarily unavailable. Please try again in a moment.";
+  }
+
   if (
     payload &&
     typeof payload === "object" &&
@@ -76,7 +114,6 @@ export default function RegistrationPage() {
   const [fieldErrors, setFieldErrors] = useState<RegistrationFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successState, setSuccessState] = useState<RegistrationSuccess | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -85,13 +122,19 @@ export default function RegistrationPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
-    setSuccessState(null);
     setFieldErrors({});
 
-    // Keep the mismatch check on the client for fast feedback before we call the API.
     if (formState.password !== formState.confirmPassword) {
       setFieldErrors({
         confirmPassword: "Password and confirm password must match."
+      });
+      return;
+    }
+
+    const passwordValidationMessage = getPasswordValidationMessage(formState.password);
+    if (passwordValidationMessage) {
+      setFieldErrors({
+        password: passwordValidationMessage
       });
       return;
     }
@@ -113,19 +156,27 @@ export default function RegistrationPage() {
         })
       });
 
-      const payload = (await response.json()) as
+      const payload = (await parseResponsePayload(response)) as
         | RegistrationSuccess
         | { detail?: string | { msg?: string }[] };
 
       if (!response.ok) {
-        setErrorMessage(extractErrorMessage(payload));
+        setErrorMessage(extractErrorMessage(response, payload));
         return;
       }
 
-      // Successful registration also creates the secure session on the backend.
-      setSuccessState(payload as RegistrationSuccess);
+      await fetch(`${API_BASE_PATH}/auth/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
       setFormState(INITIAL_FORM_STATE);
       setFieldErrors({});
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("registration_success_message", "User registered successfully.");
+        window.location.assign("/login");
+        return;
+      }
     } catch {
       setErrorMessage(
         "The registration service is currently unavailable. Please try again in a moment."
@@ -192,12 +243,13 @@ export default function RegistrationPage() {
                   name="fullName"
                   type="text"
                   value={formState.fullName}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setErrorMessage("");
                     setFormState((current) => ({
                       ...current,
                       fullName: event.target.value
-                    }))
-                  }
+                    }));
+                  }}
                   placeholder="Jane Doe"
                   required
                 />
@@ -211,12 +263,13 @@ export default function RegistrationPage() {
                   name="email"
                   type="email"
                   value={formState.email}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setErrorMessage("");
                     setFormState((current) => ({
                       ...current,
                       email: event.target.value
-                    }))
-                  }
+                    }));
+                  }}
                   placeholder="jane@example.com"
                   required
                 />
@@ -229,15 +282,24 @@ export default function RegistrationPage() {
                   name="password"
                   type="password"
                   value={formState.password}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setErrorMessage("");
+                    setFieldErrors((current) => ({
+                      ...current,
+                      password: undefined,
+                      confirmPassword: undefined
+                    }));
                     setFormState((current) => ({
                       ...current,
                       password: event.target.value
-                    }))
-                  }
+                    }));
+                  }}
                   placeholder="Use at least 8 characters"
                   required
                 />
+                {fieldErrors.password ? (
+                  <span className="registration-inline-error">{fieldErrors.password}</span>
+                ) : null}
               </label>
 
               <label className="registration-field">
@@ -248,6 +310,7 @@ export default function RegistrationPage() {
                   type="password"
                   value={formState.confirmPassword}
                   onChange={(event) => {
+                    setErrorMessage("");
                     setFieldErrors((current) => ({
                       ...current,
                       confirmPassword: undefined
@@ -276,14 +339,6 @@ export default function RegistrationPage() {
               {errorMessage ? (
                 <div className="registration-message registration-message-error">
                   {errorMessage}
-                </div>
-              ) : null}
-
-              {successState ? (
-                <div className="registration-message registration-message-success">
-                  <strong>{successState.user.full_name}</strong> is registered.
-                  Secure session active until{" "}
-                  {new Date(successState.expires_at).toLocaleString()}.
                 </div>
               ) : null}
 

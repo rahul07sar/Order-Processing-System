@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.db.models import SessionToken, User, UserRole
 from app.db.session import get_db
+from app.services.auth import revoke_all_sessions_for_user
 from app.services.rate_limiter import rate_limiter
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -105,6 +106,14 @@ def get_current_user(
 
     user = db.get(User, session_token.user_id)
     if user is None or not user.is_active:
+        # Revoke any remaining sessions for deactivated accounts so future
+        # requests fail fast even before the browser clears its cookie.
+        if user is not None:
+            revoke_all_sessions_for_user(db=db, user_id=user.id)
+        else:
+            session_token.revoked_at = datetime.now(timezone.utc)
+            db.commit()
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="The authenticated user is no longer active.",

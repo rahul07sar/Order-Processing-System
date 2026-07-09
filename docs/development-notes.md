@@ -12,6 +12,7 @@ Current workflow:
 - Run `alembic -c alembic.ini upgrade head` from `backend/`.
 - Start or restart the backend after migrations complete.
 - Route frontend browser calls through the Next.js `/api` rewrite and keep the real backend target in `API_PROXY_TARGET`, not in page code.
+- For host-side `npm run dev`, point `API_PROXY_TARGET` at a host-reachable backend URL such as `http://127.0.0.1:8000/api`. Docker Compose should use `FRONTEND_DOCKER_API_PROXY_TARGET` so the container can still reach `http://backend:8000/api`.
 
 ## Service Boundary Note
 

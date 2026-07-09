@@ -57,7 +57,7 @@ services:
       context: ./frontend
     restart: unless-stopped
     environment:
-      API_PROXY_TARGET: ${API_PROXY_TARGET}
+      API_PROXY_TARGET: ${FRONTEND_DOCKER_API_PROXY_TARGET}
     command: npm run dev -- --hostname 0.0.0.0 --port 3000
     volumes:
       - ./frontend:/app

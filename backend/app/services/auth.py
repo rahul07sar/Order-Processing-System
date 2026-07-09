@@ -8,6 +8,7 @@ import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+from uuid import UUID
 
 from fastapi import Response
 from fastapi import HTTPException, status
@@ -147,16 +148,38 @@ def clear_auth_cookie(response: Response) -> None:
     )
 
 
-def revoke_session(db: Session, raw_token: str, user_id) -> None:
-    """Invalidate one session token for the authenticated user."""
+def revoke_session(db: Session, raw_token: str, user_id: Optional[UUID] = None) -> None:
+    """Invalidate one session token for the authenticated user or caller."""
 
     token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
-    session_token = db.scalar(
+    session_query = (
         select(SessionToken)
         .where(SessionToken.token_hash == token_hash)
-        .where(SessionToken.user_id == user_id)
         .where(SessionToken.revoked_at.is_(None))
     )
+    if user_id is not None:
+        session_query = session_query.where(SessionToken.user_id == user_id)
+
+    session_token = db.scalar(session_query)
     if session_token is not None:
         session_token.revoked_at = datetime.now(timezone.utc)
         db.commit()
+
+
+def revoke_all_sessions_for_user(db: Session, user_id: UUID) -> None:
+    """Invalidate every active session for a user that is no longer allowed in."""
+
+    active_sessions = db.scalars(
+        select(SessionToken)
+        .where(SessionToken.user_id == user_id)
+        .where(SessionToken.revoked_at.is_(None))
+    ).all()
+
+    if not active_sessions:
+        return
+
+    revoked_at = datetime.now(timezone.utc)
+    for session_token in active_sessions:
+        session_token.revoked_at = revoked_at
+
+    db.commit()
