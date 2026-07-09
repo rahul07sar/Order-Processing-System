@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import { ThemeProvider } from "next-themes";
 
 import "../css/globals.css";
+import "../css/home.css";
 import "../css/login.css";
 import "../css/registration.css";
 

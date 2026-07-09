@@ -12,6 +12,12 @@
   align-items: stretch;
 }
 
+.auth-shell-single {
+  max-width: 760px;
+  width: min(760px, 100%);
+  margin-top: 40px;
+}
+
 .auth-hero,
 .auth-panel {
   border: 1px solid var(--panel-border);
@@ -292,6 +298,10 @@
 
   .auth-page {
     padding-top: 44px;
+  }
+
+  .auth-shell-single {
+    grid-template-columns: 1fr;
   }
 }
 

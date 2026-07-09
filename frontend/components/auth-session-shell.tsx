@@ -6,6 +6,8 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
+import { SiteHeader } from "./site_header";
+
 type AuthShellMode = "home" | "login";
 
 type SessionUser = {
@@ -244,37 +246,17 @@ export function AuthSessionShell({ mode }: AuthSessionShellProps) {
 
   const isDarkMode = mounted && resolvedTheme === "dark";
   const isAuthenticated = currentUser !== null;
-  const heroEyebrow = mode === "home" ? "CUSTOMER ACCESS HOME" : "USER LOGIN";
-  const heroTitle = isAuthenticated ? "Your secure session is active" : "Sign in to manage orders";
-  const heroCopy = isAuthenticated
-    ? "This session is backed by a hashed, server-side token and will be invalidated on logout or when the user account is no longer active."
-    : "Use your registered email address and password to access order activity, future product workflows, and customer-facing operations.";
 
   return (
     <main className="auth-page">
-      <section className="auth-shell">
-        {/* Context panel that explains the security posture around account access. */}
-        <div className="auth-hero">
-          <p className="auth-eyebrow">{heroEyebrow}</p>
-          <h1>{heroTitle}</h1>
-          <p className="auth-copy">{heroCopy}</p>
+      <SiteHeader
+        isAuthenticated={isAuthenticated}
+        isLogoutPending={isLoggingOut}
+        onLogout={isAuthenticated ? () => void handleLogout() : null}
+        showLoginLink={mode !== "login"}
+      />
 
-          <div className="auth-points">
-            <div className="auth-point">
-              <strong>Session-based tokens</strong>
-              <span>Opaque tokens are stored server-side as hashes, not raw secrets.</span>
-            </div>
-            <div className="auth-point">
-              <strong>Immediate logout cleanup</strong>
-              <span>Logout revokes the active session and removes the HttpOnly browser cookie.</span>
-            </div>
-            <div className="auth-point">
-              <strong>Deleted-user protection</strong>
-              <span>Stale sessions are rejected and cleaned up when an account is gone or inactive.</span>
-            </div>
-          </div>
-        </div>
-
+      <section className="auth-shell auth-shell-single">
         {/* Account access panel with login and signed-in states. */}
         <div className="auth-panel">
           <div className="auth-panel-header">
