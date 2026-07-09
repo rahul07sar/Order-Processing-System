@@ -1,3 +1,4 @@
+/* Global tokens and layout rules for the original App Router shell. */
 :root {
   color-scheme: light;
   --background: #f3efe8;
@@ -24,6 +25,7 @@
   --grid: rgba(255, 241, 232, 0.065);
 }
 
+/* Shared reset */
 * {
   box-sizing: border-box;
 }
@@ -43,6 +45,7 @@ body {
   font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
+/* Decorative background grid for the dashboard shell */
 body::before {
   content: "";
   position: fixed;
@@ -55,6 +58,7 @@ body::before {
   pointer-events: none;
 }
 
+/* Shared interactive element defaults */
 a {
   color: inherit;
   text-decoration: none;

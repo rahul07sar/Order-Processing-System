@@ -1,3 +1,5 @@
+"""FastAPI application entrypoint for the order processing backend."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -13,6 +15,10 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    """Run startup and shutdown hooks around the application lifecycle."""
+
+    # Seed-only startup tasks are safe here because schema creation itself is
+    # owned by explicit Alembic migrations.
     seed_bootstrap_admin()
     start_scheduler()
     yield
@@ -20,6 +26,9 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+# Cross-origin access is limited to configured frontend origins so browser
+# clients can call the API without opening it broadly.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_cors_origins,

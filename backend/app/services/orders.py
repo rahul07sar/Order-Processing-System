@@ -1,3 +1,5 @@
+"""Order-domain business logic used by API handlers and background jobs."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -13,6 +15,9 @@ from app.db.models import Order, OrderItem, OrderStatus, User, UserRole
 from app.schemas.order import OrderCreate
 
 MONEY_QUANTUM = Decimal("0.01")
+
+# Status transitions are intentionally constrained so invalid jumps are rejected
+# before they reach persistence.
 ALLOWED_STATUS_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
     OrderStatus.PENDING: {OrderStatus.PROCESSING, OrderStatus.CANCELLED},
     OrderStatus.PROCESSING: {OrderStatus.SHIPPED},
@@ -23,14 +28,20 @@ ALLOWED_STATUS_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
 
 
 def _round_money(value: Decimal) -> Decimal:
+    """Normalize monetary values to two decimal places."""
+
     return value.quantize(MONEY_QUANTUM, rounding=ROUND_HALF_UP)
 
 
 def _order_query():
+    """Base query that eagerly loads order items for API responses."""
+
     return select(Order).options(selectinload(Order.items))
 
 
 def create_order_for_user(db: Session, user: User, payload: OrderCreate) -> Order:
+    """Create an order and compute its totals server-side."""
+
     order = Order(user_id=user.id, status=OrderStatus.PENDING, total_amount=Decimal("0.00"))
     order.notes = payload.notes
 
@@ -60,6 +71,8 @@ def list_orders_for_user(
     user: User,
     status_filter: Optional[OrderStatus],
 ) -> list[Order]:
+    """List orders visible to the current user or admin."""
+
     query = _order_query().order_by(Order.created_at.desc())
     if user.role != UserRole.ADMIN:
         query = query.where(Order.user_id == user.id)
@@ -69,6 +82,8 @@ def list_orders_for_user(
 
 
 def get_order_for_user(db: Session, order_id: UUID, user: User) -> Order:
+    """Fetch one order while enforcing ownership rules."""
+
     order = db.scalar(_order_query().where(Order.id == order_id))
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
@@ -81,6 +96,8 @@ def get_order_for_user(db: Session, order_id: UUID, user: User) -> Order:
 
 
 def cancel_order_for_user(db: Session, order_id: UUID, user: User) -> Order:
+    """Cancel a pending order owned by the current user."""
+
     order = get_order_for_user(db=db, order_id=order_id, user=user)
     if order.status != OrderStatus.PENDING:
         raise HTTPException(
@@ -97,6 +114,8 @@ def cancel_order_for_user(db: Session, order_id: UUID, user: User) -> Order:
 
 
 def update_order_status(db: Session, order_id: UUID, next_status: OrderStatus) -> Order:
+    """Update an order status while respecting allowed transitions."""
+
     order = db.scalar(_order_query().where(Order.id == order_id))
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")

@@ -1,3 +1,5 @@
+"""Authentication request and response schemas."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -8,6 +10,8 @@ from app.schemas.user import UserResponse
 
 
 class LoginRequest(BaseModel):
+    """Payload accepted by the login endpoint."""
+
     email: str
     password: str
 
@@ -22,6 +26,8 @@ class LoginRequest(BaseModel):
 
 
 class SessionResponse(BaseModel):
+    """Session payload returned after successful authentication."""
+
     model_config = ConfigDict(from_attributes=True)
 
     access_token: str

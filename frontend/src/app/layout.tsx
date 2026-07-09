@@ -1,3 +1,6 @@
+/**
+ * App Router layout kept for the original dashboard shell.
+ */
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -17,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        {/* ThemeProvider keeps the original app-router screens visually aligned. */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>

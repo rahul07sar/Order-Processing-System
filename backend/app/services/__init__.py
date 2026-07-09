@@ -1,1 +1,1 @@
-"""Service layer helpers."""
+"""Domain services that hold business logic outside the HTTP layer."""

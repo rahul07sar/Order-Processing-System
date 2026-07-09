@@ -1,3 +1,5 @@
+"""ORM models for users, sessions, orders, and order items."""
+
 from __future__ import annotations
 
 import enum
@@ -25,11 +27,15 @@ from app.db.base import Base
 
 
 class UserRole(str, enum.Enum):
+    """Application roles used for authorization decisions."""
+
     CUSTOMER = "CUSTOMER"
     ADMIN = "ADMIN"
 
 
 class OrderStatus(str, enum.Enum):
+    """Order lifecycle stages supported by the platform."""
+
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     SHIPPED = "SHIPPED"
@@ -38,6 +44,8 @@ class OrderStatus(str, enum.Enum):
 
 
 class TimestampMixin:
+    """Shared created/updated timestamps for persisted records."""
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
@@ -50,6 +58,8 @@ class TimestampMixin:
 
 
 class User(TimestampMixin, Base):
+    """Registered account that owns orders and authenticated sessions."""
+
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -70,6 +80,8 @@ class User(TimestampMixin, Base):
 
 
 class SessionToken(TimestampMixin, Base):
+    """Opaque session token record used for cookie or bearer auth."""
+
     __tablename__ = "session_tokens"
     __table_args__ = (UniqueConstraint("token_hash", name="uq_session_tokens_token_hash"),)
 
@@ -84,6 +96,8 @@ class SessionToken(TimestampMixin, Base):
 
 
 class Order(TimestampMixin, Base):
+    """Customer order aggregate with status and monetary totals."""
+
     __tablename__ = "orders"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -105,6 +119,8 @@ class Order(TimestampMixin, Base):
 
 
 class OrderItem(TimestampMixin, Base):
+    """Immutable snapshot of one item inside an order."""
+
     __tablename__ = "order_items"
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_order_items_quantity_positive"),

@@ -1,5 +1,8 @@
 "use client";
 
+/**
+ * Shared light/dark theme switch used by demo screens.
+ */
 import { useTheme } from "next-themes";
 
 export function ThemeToggle() {
