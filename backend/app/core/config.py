@@ -8,17 +8,24 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "Order Processing API"
     api_prefix: str = "/api"
+    environment: str = "development"
     postgres_host: str = "db"
     postgres_port: int = 5432
     postgres_user: str = "order_user"
     postgres_password: str = "order_password"
     postgres_db: str = "order_processing"
     database_url: Optional[str] = None
+    auth_token_ttl_hours: int = 24
+    password_min_length: int = 12
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    bootstrap_admin_email: Optional[str] = None
+    bootstrap_admin_password: Optional[str] = None
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     @computed_field
@@ -31,6 +38,11 @@ class Settings(BaseSettings):
             f"{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+
+    @computed_field
+    @property
+    def allowed_cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache
