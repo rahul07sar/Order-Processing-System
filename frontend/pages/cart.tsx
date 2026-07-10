@@ -14,7 +14,6 @@ import {
   removeCartItem,
   updateCartItemQuantity
 } from "../services/cart_service";
-import { setCheckoutRedirect } from "../services/checkout_service";
 import { CartItem } from "../services/storefront_types";
 
 export default function CartPage() {
@@ -69,7 +68,6 @@ export default function CartPage() {
       return;
     }
 
-    setCheckoutRedirect("/payment");
     await router.push("/login?redirectTo=/payment");
   }
 

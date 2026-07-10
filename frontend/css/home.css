@@ -391,6 +391,41 @@
   gap: 10px;
 }
 
+.orders-action-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.orders-action-tooltip-bubble {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  transform: translateY(4px);
+  width: max-content;
+  max-width: min(260px, 38vw);
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(35, 29, 26, 0.92);
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 2;
+}
+
+.orders-action-tooltip:hover .orders-action-tooltip-bubble,
+.orders-action-tooltip:focus-within .orders-action-tooltip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .orders-table-action {
   border: 1px solid var(--panel-border);
   background: var(--panel-background);
