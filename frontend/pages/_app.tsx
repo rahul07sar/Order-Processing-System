@@ -12,7 +12,7 @@ import "../css/registration.css";
 export default function OrderProcessingApp({ Component, pageProps }: AppProps) {
   return (
     // Theme state is shared here so every page follows the same light/dark behavior.
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <Component {...pageProps} />
     </ThemeProvider>
   );

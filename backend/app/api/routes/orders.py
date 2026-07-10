@@ -22,6 +22,7 @@ from app.services.orders import (
     create_order_for_user,
     get_order_for_user,
     list_orders_for_user,
+    return_order_for_user,
     update_order_status,
 )
 
@@ -73,6 +74,18 @@ def cancel_order(
     """Cancel a pending order owned by the current user."""
 
     order = cancel_order_for_user(db=db, order_id=order_id, user=current_user)
+    return OrderResponse.model_validate(order)
+
+
+@router.post("/{order_id}/return", response_model=OrderResponse)
+def return_order(
+    order_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> OrderResponse:
+    """Allow a customer to mark a delivered order as returned."""
+
+    order = return_order_for_user(db=db, order_id=order_id, user=current_user)
     return OrderResponse.model_validate(order)
 
 

@@ -9,6 +9,7 @@ import { SiteHeader } from "../components/site_header";
 import { fetchCurrentUser } from "../services/auth_service";
 import { clearCart, getCartItems, getCartSubtotal } from "../services/cart_service";
 import { setCheckoutRedirect, submitCheckout } from "../services/checkout_service";
+import { formatCustomerOrderNumber } from "../services/order_service";
 import { CartItem, CheckoutResponse, SessionUser } from "../services/storefront_types";
 
 type SupportedCardType = "VISA" | "AMERICAN_EXPRESS" | "MASTERCARD";
@@ -88,16 +89,6 @@ function detectCardType(cardNumber: string): SupportedCardType | null {
 
 function buildExpiryCutoffDate(month: number, year: number): Date {
   return new Date(year, month, 0, 23, 59, 59, 999);
-}
-
-function formatCustomerOrderNumber(orderId: string): string {
-  let hash = 0;
-
-  for (const character of orderId) {
-    hash = (hash * 31 + character.charCodeAt(0)) % 900000;
-  }
-
-  return String(hash + 100000);
 }
 
 function validatePaymentForm(formState: PaymentFormState): PaymentFieldErrors {
