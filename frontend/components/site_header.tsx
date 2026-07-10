@@ -20,6 +20,7 @@ export function SiteHeader({ onLogout = null, showLoginLink = true }: SiteHeader
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const isLoginPage = router.pathname === "/login";
+  const isOrdersPage = router.pathname === "/orders";
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [isLogoutPending, setIsLogoutPending] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(0);
@@ -96,7 +97,7 @@ export function SiteHeader({ onLogout = null, showLoginLink = true }: SiteHeader
     }
   }
 
-  const isDarkMode = isThemeMounted ? resolvedTheme === "dark" : true;
+  const isDarkMode = isThemeMounted ? resolvedTheme === "dark" : false;
 
   return (
     <header className="site-header">
@@ -120,14 +121,22 @@ export function SiteHeader({ onLogout = null, showLoginLink = true }: SiteHeader
         </button>
 
         {currentUser ? (
-          <button
-            type="button"
-            className="site-nav-button"
-            onClick={() => void handleLogout()}
-            disabled={isLogoutPending}
-          >
-            {isLogoutPending ? "Logging out..." : "Logout"}
-          </button>
+          <>
+            <Link
+              className={`site-nav-link ${isOrdersPage ? "site-nav-link-active" : ""}`}
+              href="/orders"
+            >
+              Your Orders
+            </Link>
+            <button
+              type="button"
+              className="site-nav-button"
+              onClick={() => void handleLogout()}
+              disabled={isLogoutPending}
+            >
+              {isLogoutPending ? "Logging out..." : "Logout"}
+            </button>
+          </>
         ) : showLoginLink ? (
           <Link
             className={`site-nav-link ${isLoginPage ? "site-nav-link-active" : ""}`}

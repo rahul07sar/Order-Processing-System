@@ -40,6 +40,7 @@ class OrderStatus(str, enum.Enum):
     PROCESSING = "PROCESSING"
     SHIPPED = "SHIPPED"
     DELIVERED = "DELIVERED"
+    RETURNED = "RETURNED"
     CANCELLED = "CANCELLED"
 
 

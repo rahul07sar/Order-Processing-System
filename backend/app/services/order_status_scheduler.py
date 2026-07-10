@@ -1,4 +1,4 @@
-"""Background scheduler that advances pending orders automatically."""
+"""Background scheduler that advances order statuses automatically."""
 
 import logging
 from datetime import datetime, timezone
@@ -9,30 +9,30 @@ from sqlalchemy import select
 
 from app.db.models import Order, OrderStatus
 from app.db.session import SessionLocal
+from app.services.orders import synchronize_automatic_order_statuses
 
 logger = logging.getLogger(__name__)
 
-scheduler = AsyncIOScheduler()
+SCHEDULER_POLL_INTERVAL_MINUTES = 1
+
+# Coalescing prevents stacked runs after pauses or reloads, and max_instances
+# keeps a single scheduler tick from overlapping with the next one.
+scheduler = AsyncIOScheduler(job_defaults={"coalesce": True, "max_instances": 1})
+AUTOMATED_STATUSES = (
+    OrderStatus.PENDING,
+    OrderStatus.PROCESSING,
+    OrderStatus.SHIPPED,
+)
 
 
-async def promote_pending_orders() -> None:
-    """Move pending orders into processing on the configured interval."""
+async def advance_order_statuses() -> None:
+    """Advance eligible orders based on each order's own elapsed timeline."""
 
     db = SessionLocal()
     try:
-        # The scheduler only performs the simple automated transition required
-        # by the assignment and leaves later stages to explicit handlers.
-        pending_orders = db.scalars(
-            select(Order).where(Order.status == OrderStatus.PENDING)
-        ).all()
-
-        for order in pending_orders:
-            order.status = OrderStatus.PROCESSING
-            order.status_updated_at = datetime.now(timezone.utc)
-
-        if pending_orders:
-            db.commit()
-            logger.info("Promoted %s pending orders to processing.", len(pending_orders))
+        active_orders = db.scalars(select(Order).where(Order.status.in_(AUTOMATED_STATUSES))).all()
+        if synchronize_automatic_order_statuses(db=db, orders=active_orders):
+            logger.info("Automatically advanced one or more orders to the next status.")
     except Exception:
         db.rollback()
         logger.exception("Order status scheduler failed.")
@@ -46,9 +46,10 @@ def start_scheduler() -> None:
     if scheduler.running:
         return
     scheduler.add_job(
-        promote_pending_orders,
-        IntervalTrigger(minutes=5),
-        id="promote_pending_orders",
+        advance_order_statuses,
+        IntervalTrigger(minutes=SCHEDULER_POLL_INTERVAL_MINUTES),
+        id="advance_order_statuses",
+        next_run_time=datetime.now(timezone.utc),
         replace_existing=True,
     )
     scheduler.start()

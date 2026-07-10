@@ -42,3 +42,37 @@ export type CheckoutResponse = {
     total_amount: string;
   };
 };
+
+export type OrderStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "RETURNED"
+  | "CANCELLED";
+
+export type OrderItemResponse = {
+  id: string;
+  product_name: string;
+  sku: string;
+  quantity: number;
+  unit_price: string;
+  line_total: string;
+};
+
+export type OrderResponse = {
+  id: string;
+  user_id: string;
+  status: OrderStatus;
+  total_amount: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  status_updated_at: string;
+  cancelled_at: string | null;
+  items: OrderItemResponse[];
+};
+
+export type OrderListResponse = {
+  items: OrderResponse[];
+};

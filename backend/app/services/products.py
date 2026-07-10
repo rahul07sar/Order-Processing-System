@@ -38,7 +38,7 @@ PRODUCT_CATALOG: tuple[ProductResponse, ...] = (
         sku="OPS-EV-004",
         name="Portable EV Charger",
         description="Compact car charging unit for convenient portable electric-vehicle top-ups during travel.",
-        price=Decimal("68.00"),
+        price=Decimal("235.00"),
         image_url="/Products/product4.jpg",
     ),
     ProductResponse(
