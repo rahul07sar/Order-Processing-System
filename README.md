@@ -1,6 +1,6 @@
 
 # Order-Processing-System
-<p><img width="1290" height="400" alt="Order Processing System" src="https://github.com/user-attachments/assets/1056279e-99d3-4d90-abe2-0deae7c3452b" /></p>
+<p><img width="1290" height="550" alt="Order Processing System" src="https://github.com/user-attachments/assets/1056279e-99d3-4d90-abe2-0deae7c3452b" /></p>
 Order Processing System is a full-stack e-commerce-style application with a Next.js frontend, a Python- FastAPI backend, and PostgreSQL persistence.
 It supports customer registration, login, product browsing, cart management, checkout, and post-purchase order tracking.
 
