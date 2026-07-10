@@ -124,10 +124,11 @@ export default function OrdersPage() {
 
     const searchedOrders = normalizedSearchTerm
       ? orders.filter((order) => {
-          const orderNumber = formatCustomerOrderNumber(order.id);
+          const orderNumber = formatCustomerOrderNumber(order.id).toLowerCase();
+          const fullOrderId = order.id.toLowerCase();
           return (
-            order.id.toLowerCase().includes(normalizedSearchTerm) ||
-            orderNumber.includes(normalizedSearchTerm)
+            orderNumber.startsWith(normalizedSearchTerm) ||
+            fullOrderId.startsWith(normalizedSearchTerm)
           );
         })
       : orders;
@@ -368,7 +369,7 @@ export default function OrdersPage() {
                                     {loadingDetailOrderId === order.id ? "Loading..." : "View"}
                                   </button>
 
-                                  <span title={cancelActionMessage}>
+                                  <span className="orders-action-tooltip">
                                     <button
                                       type="button"
                                       className="orders-table-action orders-table-action-cancel"
@@ -377,10 +378,13 @@ export default function OrdersPage() {
                                     >
                                       {isCancelling ? "Cancelling..." : "Cancel"}
                                     </button>
+                                    <span className="orders-action-tooltip-bubble" role="tooltip">
+                                      {cancelActionMessage}
+                                    </span>
                                   </span>
 
                                   {isDelivered ? (
-                                    <span title="Return this delivered order.">
+                                    <span className="orders-action-tooltip">
                                       <button
                                         type="button"
                                         className="orders-table-action orders-table-action-return"
@@ -389,6 +393,12 @@ export default function OrdersPage() {
                                       >
                                         {isReturning ? "Returning..." : "Return"}
                                       </button>
+                                      <span
+                                        className="orders-action-tooltip-bubble"
+                                        role="tooltip"
+                                      >
+                                        Return this delivered order.
+                                      </span>
                                     </span>
                                   ) : null}
                                 </div>

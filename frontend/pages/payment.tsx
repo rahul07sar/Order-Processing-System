@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { SiteHeader } from "../components/site_header";
 import { fetchCurrentUser } from "../services/auth_service";
 import { clearCart, getCartItems, getCartSubtotal } from "../services/cart_service";
-import { setCheckoutRedirect, submitCheckout } from "../services/checkout_service";
+import { submitCheckout } from "../services/checkout_service";
 import { formatCustomerOrderNumber } from "../services/order_service";
 import { CartItem, CheckoutResponse, SessionUser } from "../services/storefront_types";
 
@@ -203,7 +203,6 @@ export default function PaymentPage() {
   }, []);
 
   async function handleLoginRedirect() {
-    setCheckoutRedirect("/payment");
     await router.push("/login?redirectTo=/payment");
   }
 

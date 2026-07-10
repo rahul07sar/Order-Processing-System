@@ -24,11 +24,12 @@ settings = get_settings()
 def get_client_ip(request: Request) -> str:
     """Resolve the most useful client IP from proxy headers or the socket."""
 
-    forwarded_for = request.headers.get("x-forwarded-for", "")
-    if forwarded_for:
-        first_forwarded = forwarded_for.split(",")[0].strip()
-        if first_forwarded:
-            return first_forwarded
+    if settings.trust_proxy_headers:
+        forwarded_for = request.headers.get("x-forwarded-for", "")
+        if forwarded_for:
+            first_forwarded = forwarded_for.split(",")[0].strip()
+            if first_forwarded:
+                return first_forwarded
     if request.client and request.client.host:
         return request.client.host
     return "unknown"

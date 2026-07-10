@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     auth_token_ttl_hours: int = 24
     auth_cookie_name: str = "ops_session"
     secure_cookies: bool = False
+    trust_proxy_headers: bool = False
     password_min_length: int = 8
     cors_origins: str = ""
     registration_rate_limit_attempts: int = 5
