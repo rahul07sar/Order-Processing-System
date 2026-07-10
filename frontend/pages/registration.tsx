@@ -5,6 +5,8 @@ import Head from "next/head";
 import { FormEvent, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
+import { SiteHeader } from "../components/site_header";
+
 type RegistrationFormState = {
   fullName: string;
   email: string;
@@ -199,6 +201,8 @@ export default function RegistrationPage() {
       </Head>
 
       <main className="registration-page">
+        <SiteHeader />
+
         <section className="registration-shell">
           {/* Left-side context block that explains the security posture of this flow. */}
           <div className="registration-hero">

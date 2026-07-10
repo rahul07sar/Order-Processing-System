@@ -1,21 +1,16 @@
 /**
- * Shared authenticated-entry shell used by the login and home pages.
+ * Shared authenticated-entry shell used by the login page.
  */
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
-import { useTheme } from "next-themes";
+
+import { emitAuthChanged, fetchCurrentUser, logoutCurrentUser } from "../services/auth_service";
+import { consumeCheckoutRedirect } from "../services/checkout_service";
+import { SessionUser } from "../services/storefront_types";
+import { SiteHeader } from "./site_header";
 
 type AuthShellMode = "home" | "login";
-
-type SessionUser = {
-  id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-};
 
 type SessionResponse = {
   expires_at: string;
@@ -71,28 +66,36 @@ function extractErrorMessage(payload: unknown): string {
   return "We could not complete the request. Please try again.";
 }
 
-async function clearServerSessionCookie(): Promise<void> {
-  try {
-    await fetch(`${API_BASE_PATH}/auth/logout`, {
-      method: "POST",
-      credentials: "include"
-    });
-  } catch {
-    //user can safely logout and login later, even if the server logout request fails. 
-    // The cookie will be cleared on the next login attempt.
+function resolvePostLoginPath(router: ReturnType<typeof useRouter>): string {
+  const redirectCandidate = router.query.redirectTo;
+  if (
+    typeof redirectCandidate === "string" &&
+    redirectCandidate.startsWith("/") &&
+    !redirectCandidate.startsWith("//")
+  ) {
+    return redirectCandidate;
   }
+
+  const storedCheckoutRedirect = consumeCheckoutRedirect();
+  if (
+    storedCheckoutRedirect &&
+    storedCheckoutRedirect.startsWith("/") &&
+    !storedCheckoutRedirect.startsWith("//")
+  ) {
+    return storedCheckoutRedirect;
+  }
+
+  return "/home";
 }
 
 export function AuthSessionShell({ mode }: AuthSessionShellProps) {
   const router = useRouter();
-  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [formState, setFormState] = useState<LoginFormState>(INITIAL_FORM_STATE);
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [sessionExpiresAt, setSessionExpiresAt] = useState<string | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -121,36 +124,20 @@ export function AuthSessionShell({ mode }: AuthSessionShellProps) {
       setIsCheckingSession(true);
 
       try {
-        const response = await fetch(`${API_BASE_PATH}/auth/me`, {
-          credentials: "include"
-        });
+        const user = await fetchCurrentUser();
 
         if (!isActive) {
           return;
         }
 
-        if (response.ok) {
-          const payload = (await response.json()) as SessionUser;
-
-          if (!isActive) {
-            return;
-          }
-
-          setCurrentUser(payload);
+        if (user) {
+          setCurrentUser(user);
           setErrorMessage("");
           setSuccessMessage("");
 
           if (mode === "login") {
-            void router.replace("/home");
+            void router.replace(resolvePostLoginPath(router));
           }
-          return;
-        }
-
-        if (response.status === 401) {
-          await clearServerSessionCookie();
-        }
-
-        if (!isActive) {
           return;
         }
 
@@ -211,9 +198,10 @@ export function AuthSessionShell({ mode }: AuthSessionShellProps) {
       setSessionExpiresAt(session.expires_at);
       setFormState(INITIAL_FORM_STATE);
       setErrorMessage("");
+      emitAuthChanged();
 
       if (mode === "login") {
-        await router.replace("/home");
+        await router.replace(resolvePostLoginPath(router));
       }
     } catch {
       setErrorMessage("The login service is temporarily unavailable. Please try again shortly.");
@@ -223,73 +211,26 @@ export function AuthSessionShell({ mode }: AuthSessionShellProps) {
   }
 
   async function handleLogout() {
-    setErrorMessage("");
-    setIsLoggingOut(true);
-
-    try {
-      await fetch(`${API_BASE_PATH}/auth/logout`, {
-        method: "POST",
-        credentials: "include"
-      });
-      setCurrentUser(null);
-      setSessionExpiresAt(null);
-      setFormState(INITIAL_FORM_STATE);
-      setSuccessMessage("");
-    } catch {
-      setErrorMessage("We could not complete logout right now. Please try again.");
-    } finally {
-      setIsLoggingOut(false);
-    }
+    await logoutCurrentUser();
+    setCurrentUser(null);
+    setSessionExpiresAt(null);
+    setFormState(INITIAL_FORM_STATE);
+    setSuccessMessage("");
   }
 
-  const isDarkMode = mounted && resolvedTheme === "dark";
   const isAuthenticated = currentUser !== null;
-  const heroEyebrow = mode === "home" ? "CUSTOMER ACCESS HOME" : "USER LOGIN";
-  const heroTitle = isAuthenticated ? "Your secure session is active" : "Sign in to manage orders";
-  const heroCopy = isAuthenticated
-    ? "This session is backed by a hashed, server-side token and will be invalidated on logout or when the user account is no longer active."
-    : "Use your registered email address and password to access order activity, future product workflows, and customer-facing operations.";
 
   return (
     <main className="auth-page">
-      <section className="auth-shell">
-        {/* Context panel that explains the security posture around account access. */}
-        <div className="auth-hero">
-          <p className="auth-eyebrow">{heroEyebrow}</p>
-          <h1>{heroTitle}</h1>
-          <p className="auth-copy">{heroCopy}</p>
+      <SiteHeader onLogout={() => void handleLogout()} showLoginLink={mode !== "login"} />
 
-          <div className="auth-points">
-            <div className="auth-point">
-              <strong>Session-based tokens</strong>
-              <span>Opaque tokens are stored server-side as hashes, not raw secrets.</span>
-            </div>
-            <div className="auth-point">
-              <strong>Immediate logout cleanup</strong>
-              <span>Logout revokes the active session and removes the HttpOnly browser cookie.</span>
-            </div>
-            <div className="auth-point">
-              <strong>Deleted-user protection</strong>
-              <span>Stale sessions are rejected and cleaned up when an account is gone or inactive.</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Account access panel with login and signed-in states. */}
+      <section className="auth-shell auth-shell-single">
         <div className="auth-panel">
           <div className="auth-panel-header">
             <div>
               <p className="auth-panel-label">{mode === "home" ? "Home Access" : "Login"}</p>
               <h2>{isAuthenticated ? "Customer Session" : "Welcome back"}</h2>
             </div>
-
-            <button
-              type="button"
-              className="auth-theme-toggle"
-              onClick={() => setTheme(isDarkMode ? "light" : "dark")}
-            >
-              {mounted ? (isDarkMode ? "Light mode" : "Dark mode") : "Theme"}
-            </button>
           </div>
 
           {isCheckingSession ? (
@@ -333,17 +274,6 @@ export function AuthSessionShell({ mode }: AuthSessionShellProps) {
               {errorMessage ? (
                 <div className="auth-message auth-message-error">{errorMessage}</div>
               ) : null}
-
-              <div className="auth-actions">
-                <button
-                  type="button"
-                  className="auth-secondary-action"
-                  onClick={() => void handleLogout()}
-                  disabled={isLoggingOut}
-                >
-                  {isLoggingOut ? "Signing out..." : "Logout"}
-                </button>
-              </div>
             </div>
           ) : (
             <form className="auth-form" onSubmit={handleSubmit}>
