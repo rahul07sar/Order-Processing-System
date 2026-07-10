@@ -82,6 +82,9 @@
   height: 50px;
   border-radius: 12px;
   display: block;
+  filter: none !important;
+  mix-blend-mode: normal;
+  opacity: 1;
 }
 
 .site-nav-link-active {
@@ -90,15 +93,29 @@
 }
 
 .site-cart-button {
-  width: 52px;
+  width: 50px;
+  height: 50px;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
   position: relative;
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  border-radius: 4px;
+}
+
+.site-cart-button:hover {
+  border-color: transparent;
 }
 
 .site-cart-button img {
   width: 24px;
   height: 24px;
+  border-radius: 4px;
+  display: block;
 }
 
 .site-cart-count {
