@@ -1,6 +1,7 @@
 """Authentication routes for registration, login, and session lifecycle."""
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -46,12 +47,20 @@ def register(
             detail="An account with this email already exists. Please log in.",
         )
 
-    user = create_user(
-        db=db,
-        full_name=payload.full_name,
-        email=payload.normalized_email,
-        password=payload.password,
-    )
+    try:
+        user = create_user(
+            db=db,
+            full_name=payload.full_name,
+            email=payload.normalized_email,
+            password=payload.password,
+        )
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists. Please log in.",
+        ) from None
+
     raw_token, session_token = create_session_for_user(
         db=db,
         user=user,

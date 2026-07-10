@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 
 import { emitAuthChanged, fetchCurrentUser, logoutCurrentUser } from "../services/auth_service";
-import { consumeCheckoutRedirect } from "../services/checkout_service";
 import { SessionUser } from "../services/storefront_types";
 import { SiteHeader } from "./site_header";
 
@@ -74,15 +73,6 @@ function resolvePostLoginPath(router: ReturnType<typeof useRouter>): string {
     !redirectCandidate.startsWith("//")
   ) {
     return redirectCandidate;
-  }
-
-  const storedCheckoutRedirect = consumeCheckoutRedirect();
-  if (
-    storedCheckoutRedirect &&
-    storedCheckoutRedirect.startsWith("/") &&
-    !storedCheckoutRedirect.startsWith("//")
-  ) {
-    return storedCheckoutRedirect;
   }
 
   return "/home";

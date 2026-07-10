@@ -204,38 +204,13 @@ export default function RegistrationPage() {
         <SiteHeader />
 
         <section className="registration-shell">
-          {/* Left-side context block that explains the security posture of this flow. */}
-          <div className="registration-hero">
-            <p className="registration-eyebrow">USER SERVICE ENTRYPOINT</p>
-            <h1>Create your customer account</h1>
-            <p className="registration-copy">
-              This flow is wired for secure registration with backend validation,
-              rate limiting, and an HttpOnly session cookie instead of browser token
-              storage.
-            </p>
-
-            <div className="registration-badges">
-              <span>Rate limited</span>
-              <span>Password policy enforced</span>
-              <span>Session cookie issued</span>
-            </div>
-          </div>
-
-          {/* Right-side form panel for account creation. */}
+          {/* Centered form panel for account creation. */}
           <div className="registration-panel">
             <div className="registration-panel-header">
               <div>
                 <p className="registration-panel-label">Registration</p>
                 <h2>Customer Signup</h2>
               </div>
-
-              <button
-                type="button"
-                className="registration-theme-toggle"
-                onClick={() => setTheme(isDarkMode ? "light" : "dark")}
-              >
-                {mounted ? (isDarkMode ? "Light mode" : "Dark mode") : "Theme"}
-              </button>
             </div>
 
             <form className="registration-form" onSubmit={handleSubmit}>
